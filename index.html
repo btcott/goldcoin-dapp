@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Buy GOLDCOIN</title>
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+  <script src="https://unpkg.com/@solana/spl-token@latest/lib/index.iife.js"></script>
+</head>
+<body>
+  <h1>Buy GOLDCOIN</h1>
+  <button onclick="connectWallet()">Connect Wallet</button>
+  <button onclick="buy()">Buy GOLDCOIN (1 SOL → 10,000)</button>
+
+  <script>
+    const solana = window.solana;
+    let provider = null;
+    let publicKey = null;
+
+    const TOKEN_MINT = new solanaWeb3.PublicKey("DbAdpNodV8EJXESxUE8KZuY9PmNuEMfmpPAZgF1UB73P");
+    const VAULT_SOL = new solanaWeb3.PublicKey("7rQrwhQzyq8uBjbR4J16B5XhQE68xBt4JpxjdSx6R5uV");
+
+    async function connectWallet() {
+      if (window.solana && window.solana.isPhantom) {
+        provider = window.solana;
+        try {
+          const resp = await provider.connect();
+          publicKey = resp.publicKey;
+          alert("Wallet connected: " + publicKey.toString());
+        } catch (err) {
+          console.error("Connection error", err);
+        }
+      } else {
+        alert("Please install Phantom Wallet!");
+      }
+    }
+
+    async function buy() {
+      const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl("mainnet-beta"), "confirmed");
+      const transaction = new solanaWeb3.Transaction();
+
+      // 1 SOL → Vault
+      const transferInstruction = solanaWeb3.SystemProgram.transfer({
+        fromPubkey: publicKey,
+        toPubkey: VAULT_SOL,
+        lamports: solanaWeb3.LAMPORTS_PER_SOL,
+      });
+
+      transaction.add(transferInstruction);
+
+      try {
+        const { signature } = await provider.signAndSendTransaction(transaction);
+        await connection.confirmTransaction(signature, "confirmed");
+        alert("1 SOL sent! Tx: " + signature);
+
+        // OPTIONAL: Hier könntest du jetzt per Server oder Webhook den Token zurücksenden
+        alert("Du erhältst 10.000 GOLDCOIN in Kürze!");
+      } catch (err) {
+        console.error("Transaction error", err);
+        alert("Transaktion fehlgeschlagen!");
+      }
+    }
+  </script>
+</body>
+</html>
